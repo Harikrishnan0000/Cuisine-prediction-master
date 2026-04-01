@@ -1,0 +1,477 @@
+/* =========================================================
+   CUISINE PREDICTOR — ANTI-GRAVITY UI
+   ========================================================= */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --white:       #ffffff;
+  --off-white:   #f8f8f8;
+  --grey-100:    #f1f1f1;
+  --grey-200:    #e0e0e0;
+  --grey-400:    #9aa0a6;
+  --grey-700:    #5f6368;
+  --black:       #202124;
+  --accent:      #1a73e8;
+  --accent-soft: #e8f0fe;
+  --shadow-sm:   0 1px 6px rgba(32,33,36,.12);
+  --shadow-md:   0 4px 24px rgba(32,33,36,.16);
+  --shadow-lg:   0 8px 40px rgba(32,33,36,.22);
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-pill: 999px;
+  --font:        'Inter', system-ui, sans-serif;
+  --transition:  cubic-bezier(.4,0,.2,1);
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: var(--white);
+  font-family: var(--font);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Physics canvas (invisible but needed for Matter.js) ── */
+#physics-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CENTERED WRAPPER (pre-gravity)
+   ══════════════════════════════════════════════════════════ */
+#ui-wrapper {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* ── Logo ── */
+#logo {
+  text-align: center;
+  user-select: none;
+}
+
+.logo-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.12));
+  animation: float-soft 4s ease-in-out infinite;
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+.logo-title {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: var(--black);
+  line-height: 1.1;
+}
+
+.logo-sub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--grey-400);
+  margin-top: 6px;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+/* ── Input ── */
+#input-row {
+  width: 100%;
+  max-width: 560px;
+  padding: 0 16px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-pill);
+  padding: 0 20px;
+  height: 54px;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .25s var(--transition),
+              box-shadow .25s var(--transition),
+              transform .25s var(--transition);
+}
+
+.input-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26,115,232,.12), var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.input-container:hover:not(:focus-within) {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.input-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+#ingredient-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--black);
+  background: transparent;
+}
+
+#ingredient-input::placeholder {
+  color: var(--grey-400);
+}
+
+/* ── Predict Button ── */
+#button-row {
+  display: flex;
+  justify-content: center;
+}
+
+#predict-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0 32px;
+  height: 48px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: .2px;
+  box-shadow: var(--shadow-sm);
+  transition: background .2s, transform .2s var(--transition),
+              box-shadow .2s var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+#predict-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.1);
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+#predict-btn:hover {
+  background: #3c4043;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+#predict-btn:hover::after { opacity: 1; }
+
+#predict-btn:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-icon {
+  font-size: 16px;
+  transition: transform .3s var(--transition);
+}
+
+#predict-btn:hover .btn-icon {
+  transform: rotate(20deg) scale(1.2);
+}
+
+/* ── Hint ── */
+.hint {
+  font-size: 12.5px;
+  color: var(--grey-400);
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════
+   FLOATING ELEMENTS (post-gravity)
+   ══════════════════════════════════════════════════════════ */
+.floating-element {
+  position: fixed;
+  z-index: 20;
+  cursor: grab;
+  user-select: none;
+  will-change: transform;
+}
+
+.floating-element:active { cursor: grabbing; }
+
+/* ── Result Card ── */
+#result-card {
+  background: var(--white);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-md);
+  padding: 22px 28px 20px;
+  min-width: 220px;
+  box-shadow: var(--shadow-lg);
+  animation: card-entrance .5s var(--transition) both;
+}
+
+@keyframes card-entrance {
+  from { opacity: 0; transform: scale(.85) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.result-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--grey-400);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.result-cuisine {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--black);
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.result-confidence {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confidence-label {
+  font-size: 11px;
+  color: var(--grey-400);
+  flex-shrink: 0;
+}
+
+.confidence-bar-track {
+  flex: 1;
+  height: 4px;
+  background: var(--grey-100);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.confidence-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #1a73e8, #34a853);
+  border-radius: 2px;
+  transition: width 1.2s var(--transition);
+}
+
+.confidence-percent {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--black);
+  flex-shrink: 0;
+}
+
+.result-flag {
+  font-size: 28px;
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+}
+
+/* ── Recipe Chips ── */
+.recipe-chip {
+  position: fixed;
+  background: var(--off-white);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--grey-700);
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+  will-change: transform;
+  z-index: 20;
+  transition: background .2s, box-shadow .2s, border-color .2s;
+}
+
+.recipe-chip:hover {
+  background: var(--accent-soft);
+  border-color: #c5d9fc;
+  color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.recipe-chip:active { cursor: grabbing; }
+
+/* ── Reset Button ── */
+#reset-btn {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--white);
+  color: var(--grey-700);
+  border: 1.5px solid var(--grey-200);
+  border-radius: var(--radius-pill);
+  padding: 10px 28px;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all .25s var(--transition);
+  letter-spacing: .3px;
+  animation: reset-pop .4s var(--transition) both;
+}
+
+@keyframes reset-pop {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+#reset-btn:hover {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Loading Overlay ── */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--grey-200);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 14px;
+  color: var(--grey-400);
+  font-weight: 400;
+  letter-spacing: .4px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   GRAVITY TRANSITION — UI elements fly off
+   ══════════════════════════════════════════════════════════ */
+.gravity-active {
+  pointer-events: none !important;
+}
+
+.fall-away {
+  animation: fall-away .8s cubic-bezier(.4,0,1,1) forwards;
+}
+
+@keyframes fall-away {
+  0%   { opacity: 1; }
+  100% { opacity: 0; transform: translateY(120vh) rotate(12deg); }
+}
+
+/* ── Particle burst ── */
+.particle {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 30;
+  animation: particle-burst .8s ease-out forwards;
+}
+
+@keyframes particle-burst {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0) translate(var(--dx), var(--dy)); }
+}
+
+/* ── Gravity tilt on Input ── */
+.tilt-drop {
+  animation: tilt-drop .6s cubic-bezier(.4,0,1,1) forwards;
+}
+
+@keyframes tilt-drop {
+  0%   { opacity: 1; transform: rotate(0deg) translateY(0); }
+  30%  { transform: rotate(-8deg) translateY(10px); }
+  100% { opacity: 0; transform: rotate(15deg) translateY(110vh); }
+}
+
+.slide-left {
+  animation: slide-left .55s cubic-bezier(.4,0,1,1) .1s forwards;
+}
+
+@keyframes slide-left {
+  0%   { opacity: 1; transform: translateX(0) rotate(0); }
+  100% { opacity: 0; transform: translateX(-120vw) rotate(-20deg); }
+}
+
+.slide-right {
+  animation: slide-right .55s cubic-bezier(.4,0,1,1) .05s forwards;
+}
+
+@keyframes slide-right {
+  0%   { opacity: 1; transform: translateX(0) rotate(0); }
+  100% { opacity: 0; transform: translateX(120vw) rotate(20deg); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .logo-title { font-size: 32px; }
+  #predict-btn { padding: 0 24px; font-size: 14px; }
+  #result-card { min-width: 180px; padding: 16px 20px 16px; }
+  .result-cuisine { font-size: 26px; }
+}
