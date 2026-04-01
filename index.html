@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuisine Predictor — Anti-Gravity</title>
+  <meta name="description" content="An interactive, physics-based cuisine prediction tool. Enter your ingredients and watch the UI come alive." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Physics canvas for Matter.js collisions (invisible) -->
+  <canvas id="physics-canvas"></canvas>
+
+  <!-- Static centered UI (pre-gravity) -->
+  <div id="ui-wrapper">
+
+    <div id="logo" class="ui-element">
+      <span class="logo-icon">🍽️</span>
+      <h1 class="logo-title">Cuisine Predictor</h1>
+      <p class="logo-sub">powered by Machine Learning</p>
+    </div>
+
+    <div id="input-row" class="ui-element">
+      <div class="input-container">
+        <span class="input-icon">🥗</span>
+        <input
+          id="ingredient-input"
+          type="text"
+          placeholder="Enter ingredients (e.g., chicken, rice, garlic)"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+    </div>
+
+    <div id="button-row" class="ui-element">
+      <button id="predict-btn" onclick="launchGravity()">
+        <span class="btn-text">Predict</span>
+        <span class="btn-icon">✨</span>
+      </button>
+    </div>
+
+    <p id="hint-text" class="ui-element hint">Try: soy sauce, ginger, noodles</p>
+
+  </div>
+
+  <!-- Floating result card (hidden initially) -->
+  <div id="result-card" class="floating-element" style="display:none;">
+    <div class="result-badge">🌍 Detected Cuisine</div>
+    <div class="result-cuisine" id="result-cuisine-name">Italian</div>
+    <div class="result-confidence">
+      <div class="confidence-label">Confidence</div>
+      <div class="confidence-bar-track">
+        <div class="confidence-bar-fill" id="confidence-bar"></div>
+      </div>
+      <div class="confidence-percent" id="confidence-percent">71%</div>
+    </div>
+    <div class="result-flag" id="result-flag">🇮🇹</div>
+  </div>
+
+  <!-- Floating recipe chips container -->
+  <div id="chips-container"></div>
+
+  <!-- Reset button (after gravity) -->
+  <button id="reset-btn" onclick="resetUI()" style="display:none;">
+    ↺ Reset
+  </button>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" style="display:none;">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Analyzing ingredients…</p>
+  </div>
+
+  <!-- Matter.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
